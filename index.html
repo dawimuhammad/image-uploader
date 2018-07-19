@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Image Uploader</title>
+  </head>
+  <body class"">
+      <!-- http://35.240.157.177/ -->
+    <div id="fupload">
+        <div class="container-fluid" style="height: 500px;">
+            <div class="d-flex">
+                <!--  LEFT COLUMN  -->
+                <div class="row border justify-content-center" style="width:40%">
+
+                  <!-- LOGIN ROW -->
+                    <form class="w-75 p-5 border my-3" @submit.prevent="login">
+                      <div class="form-group">
+                        <label>Email address</label>
+                        <input type="email" class="form-control" v-model="email" placeholder="Enter email">
+                      </div>
+                      <div class="form-group justify-content-center">
+                        <label>name</label>
+                        <input type="text" class="form-control" v-model="name" placeholder="name">
+                      </div>
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+
+                  <!-- FILE UPLOAD ROW -->
+                    <form class="w-75 p-5 border my-3" @submit.prevent="submitFile">
+                      <label>File
+                        <input type="file" id="file" ref="file" v-on:change="handleFileUpload($event.target.files[0])"/>
+                      </label>
+                      <progress max="100" :value.prop="uploadPercentage"></progress>
+                      <button v-if="token" type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+
+                <!-- RIGHT COLUMN (SHOW IMAGE) -->
+                <div class="col border">
+                  <div v-if="token">
+                    <button class="btn btn-primary" v-on:click="showImages">Show Images</button>
+                    <!-- <div class="container" v-for="image in images"> -->
+                      <div class="d-flex justify-content-between">
+                        <!-- <img width="100px" height="100px" v-bind:src="image.img_src" alt="Product"> -->
+                        <!-- <p class="align-self-center text-left"> {{ image.name }} </p> -->
+                      </div>
+                    <!-- </div> -->
+                  </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let fupload = new Vue ({
+            el: '#fupload',
+            data: {
+                token: '',
+                uploadPercentage: 0,
+                file: null,
+                images: []
+            },
+            methods: {
+                showImages () {
+                    axios.get('http://35.240.157.177/image', this.token)
+                    .then((response) => {
+                        console.log(response);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+                },
+                login () {
+                    axios.post('http://35.240.157.177/request-token', {
+                          name: this.name,
+                          email: this.email
+                    }, {
+
+                    })
+                    .then(response => {
+                          this.token = response.data.uuid
+                          localStorage.setItem("token", this.token)
+                    })
+                    .err(err => {
+                        console.log(err)
+                    })
+                },
+                handleFileUpload: function (e) {
+                    this.file = e
+                },
+                submitFile: function () {
+                    event.preventDefault()
+
+                    let formData = new FormData()
+
+                    formData.append('image', this.file)
+
+                    axios.post('http://35.240.157.177/image',
+                        { file: this.file },
+                        { authorization: localStorage.getItem("token") }
+                    )
+                    .then((response) => {
+                        console.log(response);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+                }
+            }
+        })
+    </script>
+  </body>
+</html>
